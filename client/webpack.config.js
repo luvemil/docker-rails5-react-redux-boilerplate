@@ -77,7 +77,8 @@ if (BUILD_DLL === '1' || BUILD_DLL === 1) {
     // Stats in the console.
     stats: {
       colors: true
-    }
+    },
+    postcss: {}
   });
 }
 
