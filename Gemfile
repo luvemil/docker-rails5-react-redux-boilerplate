@@ -8,11 +8,14 @@ gem 'pg', '~> 0.18'
 gem 'puma', '~> 3.0'
 # Serializer
 gem 'active_model_serializers', '~> 0.10.0'
+# DigitalOcean API
+gem 'droplet_kit'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'pry'
   gem 'pry-nav'
+  gem 'dotenv-rails'
 end
 
 group :development do

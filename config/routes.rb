@@ -4,6 +4,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       get :hello, to: 'base#hello'
       # Put your routes here!
+      get :snapshots, to: 'base#list_snapshots'
     end
   end
 end
