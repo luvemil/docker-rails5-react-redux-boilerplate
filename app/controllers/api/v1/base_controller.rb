@@ -41,31 +41,32 @@ class Api::V1::BaseController < ApplicationController
   def shutdown_droplet
     droplet = select_droplet params
     render json: {} and return unless droplet
-    action = @client.droplet_actions.shutdown(droplet_id: droplet.id)
+    action = operate_droplet_shutdown droplet.id
     render json: action.to_json
   end
 
   def poweroff_droplet
     droplet = select_droplet params
     render json: {} and return unless droplet
-    action = @client.droplet_actions.power_off(droplet_id: droplet.id)
+    action = operate_droplet_poweroff droplet.id
     render json: action.to_json
   end
 
   def snapshot_droplet
     droplet = select_droplet params
     render json: {} and return unless droplet
-    action = @client.droplet_actions.snapshot(droplet_id: droplet.id, name: droplet.name)
+    action = operate_droplet_snapshot droplet.id, droplet.name
     render json: action.to_json
   end
 
   def destroy_droplet
     droplet = select_droplet params
     render json: {} and return unless droplet
-    action = @client.droplets.delete(id: droplet.id)
+    action = operate_droplet_destroy droplet.id
     render json: action.to_json
   end
 
+  # PROTECTED METHODS BEGIN
   protected
   def create
     @client = DropletKit::Client.new(access_token: Rails.application.secrets.digital_ocean_token)
@@ -111,5 +112,24 @@ class Api::V1::BaseController < ApplicationController
     droplets = @droplets.select {|drop| drop.id == options[:droplet_id].to_i}
     return false if droplets == []
     droplet = droplets.first
+  end
+
+  def operate_droplet_shutdown droplet_id
+    # Call DigitalOcean API to shutdown the droplet
+    # => Action
+    @client.droplet_actions.shutdown(droplet_id: droplet_id)
+  end
+
+  def operate_droplet_poweroff droplet_id
+    # As above
+    @client.droplet_actions.power_off(droplet_id: droplet_id)
+  end
+
+  def operate_droplet_snapshot droplet_id, snap_name
+    @client.droplet_actions.snapshot(droplet_id: droplet_id, name: snap_name)
+  end
+
+  def operate_droplet_destroy droplet_id
+    @client.droplets.delete(id: droplet_id)
   end
 end
