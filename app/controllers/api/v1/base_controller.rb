@@ -30,11 +30,8 @@ class Api::V1::BaseController < ApplicationController
   end
 
   def create_droplet
-    get_snapshots unless @snapshots
-    render json: {} and return unless params[:snap_id]
-    snaps = @snapshots.select {|snap| snap.id == params[:snap_id]}
-    render json: {} and return if snaps == []
-    snap = snaps.first
+    snap = select_snapshot params
+    render json: {} and return unless snap
     params = update_snapshot_params snap
     droplet = DropletKit::Droplet.new params
     action = @client.droplets.create(droplet)
@@ -42,41 +39,29 @@ class Api::V1::BaseController < ApplicationController
   end
 
   def shutdown_droplet
-    get_droplets unless @droplets
-    render json: {"Error": "No parameter given"} and return unless params[:droplet_id]
-    droplets = @droplets.select {|drop| drop.id == params[:droplet_id].to_i}
-    render json: {"Error": "Not a valid droplet ID"} and return if droplets == []
-    droplet = droplets.first
+    droplet = select_droplet params
+    render json: {} and return unless droplet
     action = @client.droplet_actions.shutdown(droplet_id: droplet.id)
     render json: action.to_json
   end
 
   def poweroff_droplet
-    get_droplets unless @droplets
-    render json: {} and return unless params[:droplet_id]
-    droplets = @droplets.select {|drop| drop.id == params[:droplet_id].to_i}
-    render json: {} and return if droplets == []
-    droplet = droplets.first
+    droplet = select_droplet params
+    render json: {} and return unless droplet
     action = @client.droplet_actions.power_off(droplet_id: droplet.id)
     render json: action.to_json
   end
 
   def snapshot_droplet
-    get_droplets unless @droplets
-    render json: {} and return unless params[:droplet_id]
-    droplets = @droplets.select {|drop| drop.id == params[:droplet_id].to_i}
-    render json: {} and return if droplets == []
-    droplet = droplets.first
+    droplet = select_droplet params
+    render json: {} and return unless droplet
     action = @client.droplet_actions.snapshot(droplet_id: droplet.id, name: droplet.name)
     render json: action.to_json
   end
 
   def destroy_droplet
-    get_droplets unless @droplets
-    render json: {} and return unless params[:droplet_id]
-    droplets = @droplets.select {|drop| drop.id == params[:droplet_id].to_i}
-    render json: {} and return if droplets == []
-    droplet = droplets.first
+    droplet = select_droplet params
+    render json: {} and return unless droplet
     action = @client.droplets.delete(id: droplet.id)
     render json: action.to_json
   end
@@ -106,5 +91,25 @@ class Api::V1::BaseController < ApplicationController
       size: @@disktoram[snap.min_disk_size],
       image: snap.id.to_i
     }
+  end
+
+  def select_snapshot( options = {} )
+    # Select the snapshot given by params[:snap_id]
+    # => DropletKit::Snapshot or false if no match is found
+    return false unless options[:snap_id]
+    get_snapshots unless @snapshots
+    snaps = @snapshots.select {|snap| snap.id == options[:snap_id]}
+    return false if snaps == []
+    snap = snaps.first
+  end
+
+  def select_droplet( options = {} )
+    # Select the droplet given by params[:droplet_id]
+    # => DropletKit::Droplet or false if no match is found
+    return false unless options[:droplet_id]
+    get_droplets unless @droplets
+    droplets = @droplets.select {|drop| drop.id == options[:droplet_id].to_i}
+    return false if droplets == []
+    droplet = droplets.first
   end
 end
