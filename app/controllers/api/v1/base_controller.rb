@@ -19,40 +19,14 @@ class Api::V1::BaseController < ApplicationController
     render json: { title: 'React and Rails' }
   end
 
-  def create
-    @client = DropletKit::Client.new(access_token: Rails.application.secrets.digital_ocean_token)
-  end
-
-  def get_snapshots
-    create unless @client
-    @snapshots = @client.snapshots.all(resource_type: 'droplet')
-    @snapshots.each {}
-  end
-
   def list_snapshots
     get_snapshots unless @snapshots
     render json: @snapshots.to_json
   end
 
-  def get_droplets
-    create unless @client
-    @droplets = @client.droplets.all
-    @droplets.each
-  end
-
   def list_droplets
     get_droplets unless @droplets
     render json: @droplets.to_json
-  end
-
-  def update_snapshot_params snap
-    m = snap.name.match('(.*)-(\d*)-\d*')
-    params = {
-      name: "#{m[1]}-#{(m[2].to_i + 1).to_s.rjust(3,'0')}-#{Date::today.strftime '%Y%m%d'}",
-      region: snap.regions.first,
-      size: @@disktoram[snap.min_disk_size],
-      image: snap.id.to_i
-    }
   end
 
   def create_droplet
@@ -105,5 +79,32 @@ class Api::V1::BaseController < ApplicationController
     droplet = droplets.first
     action = @client.droplets.delete(id: droplet.id)
     render json: action.to_json
+  end
+
+  protected
+  def create
+    @client = DropletKit::Client.new(access_token: Rails.application.secrets.digital_ocean_token)
+  end
+
+  def get_snapshots
+    create unless @client
+    @snapshots = @client.snapshots.all(resource_type: 'droplet')
+    @snapshots.each {}
+  end
+
+  def get_droplets
+    create unless @client
+    @droplets = @client.droplets.all
+    @droplets.each
+  end
+
+  def update_snapshot_params snap
+    m = snap.name.match('(.*)-(\d*)-\d*')
+    params = {
+      name: "#{m[1]}-#{(m[2].to_i + 1).to_s.rjust(3,'0')}-#{Date::today.strftime '%Y%m%d'}",
+      region: snap.regions.first,
+      size: @@disktoram[snap.min_disk_size],
+      image: snap.id.to_i
+    }
   end
 end
