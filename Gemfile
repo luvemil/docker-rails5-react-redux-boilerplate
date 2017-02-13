@@ -12,6 +12,8 @@ gem 'active_model_serializers', '~> 0.10.0'
 gem 'droplet_kit'
 # DelayedJob
 gem 'delayed_job_active_record'
+# Daemons required by DelayedJob
+gem 'daemons'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
