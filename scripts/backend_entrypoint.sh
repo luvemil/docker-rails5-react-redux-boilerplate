@@ -32,6 +32,8 @@ bundle install --quiet
 if [ ! -f ./tmp/db.sem ]; then
   echo -e "\nSetup database"
   bin/rake db:setup
+  echo -e "\nSetup Delayed Job table"
+  rails generate delayed_job:active_record
   echo -e "\nRunning migrations"
   bin/rake db:migrate
   touch ./tmp/db.sem
